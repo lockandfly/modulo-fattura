@@ -600,7 +600,7 @@
 
             <!-- PULSANTI -->
             <div class="button-group">
-                <button type="button" class="btn-success" id="btnInviaPDF" onclick="inviaConFirmaDigitale()">
+                <button type="button" class="btn-success" id="btnInviaPDF" onclick="inviaConFirmaDigitale(event); return false;">
                     📧 INVIA DOPO FIRMA GRAFICA
                 </button>
                 <button type="button" class="btn-primary" id="btnScaricaPDF" onclick="scaricaPDFManuale()" style="display: none;">
@@ -735,7 +735,11 @@
         });
 
         // INVIA CON FIRMA DIGITALE
-        function inviaConFirmaDigitale() {
+        function inviaConFirmaDigitale(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             if (!validaFormDigitale()) return;
 
             const nome = document.getElementById('nome').value;
@@ -783,7 +787,7 @@ ${note || 'Nessuna nota'}
 
 DATA FIRMA: ${dataFirma}
 
-FIRMA GRAFICA: [Incorporata nel PDF allegato]
+FIRMA GRAFICA: [Allegare il PDF scaricato con la firma]
 
 ===============================================
 Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
@@ -803,15 +807,31 @@ Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
 
             setTimeout(() => {
                 navigator.clipboard.writeText(testo).then(() => {
-                    alert('✅ PDF generato e salvato!\n\nOra:\n1. Apri la tua app email\n2. Allega il file "Modulo_Fattura_Lock_Fly.pdf"\n3. Incolla il testo nell\'email\n4. Invia a direzione@lockandfly.com');
-                    // Apri l'app email con il destinatario precompilato
-                    const emailLink = `mailto:direzione@lockandfly.com?subject=Richiesta%20Fattura%20Lock%20%26%20Fly%20-%20${encodeURIComponent(nome)}&body=${encodeURIComponent(testo)}`;
-                    window.location.href = emailLink;
+                    const istruzioni = `✅ PERFETTO! Ecco cosa è successo:
+
+1️⃣ PDF SCARICATO
+   📱 Cartella "Download" del tuo dispositivo
+   📄 Nome file: Modulo_Fattura_Lock_Fly.pdf
+
+2️⃣ TESTO COPIATO
+   ✏️ Modulo copiato negli appunti
+
+3️⃣ PROSSIMI STEP:
+   A) Apri l'app EMAIL (Gmail, Outlook, ecc.)
+   B) Nuovo messaggio a: direzione@lockandfly.com
+   C) Incolla il testo nel corpo email (Ctrl+V)
+   D) Clicca "Allega file" → Cartella Download
+   E) Seleziona il PDF e invia!
+
+📍 DOVE TROVARE IL FILE:
+   🖥️ Windows: C:\\Users\\[TuoNome]\\Downloads\\
+   🍎 Mac: ~/Downloads/
+   🤖 Android: Apri "File" → Cartella Download
+   📱 iPhone: Apri "File" → "Recenti" o "iCloud Drive"`;
+                    
+                    alert(istruzioni);
                 }).catch(() => {
-                    alert('⚠️ Errore nella copia. Copia manualmente il testo e invia per email.');
-                    // Apri comunque l'app email anche in caso di errore
-                    const emailLink = `mailto:direzione@lockandfly.com?subject=Richiesta%20Fattura%20Lock%20%26%20Fly%20-%20${encodeURIComponent(nome)}`;
-                    window.location.href = emailLink;
+                    alert('⚠️ Errore nella copia del testo.\n\n✅ Ma il PDF è stato scaricato correttamente!\n\n👉 Apri l\'app email, allega il PDF da Downloads e invia a direzione@lockandfly.com');
                 });
             }, 1500);
         }
