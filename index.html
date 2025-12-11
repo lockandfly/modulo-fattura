@@ -456,6 +456,22 @@
                                 <label for="carwash">Car Wash</label>
                             </div>
                             <div class="checkbox-item">
+                                <input type="checkbox" id="coperto" name="servizio" value="Parcheggio Coperto">
+                                <label for="coperto">Parcheggio Coperto</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="scoperto" name="servizio" value="Parcheggio Scoperto">
+                                <label for="scoperto">Parcheggio Scoperto</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tieni" name="servizio" value="Tieni le Chiavi">
+                                <label for="tieni">Tieni le Chiavi</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="lascia" name="servizio" value="Lascia le Chiavi">
+                                <label for="lascia">Lascia le Chiavi</label>
+                            </div>
+                            <div class="checkbox-item">
                                 <input type="checkbox" id="altro" name="servizio" value="Altro">
                                 <label for="altro">Altro</label>
                             </div>
@@ -773,7 +789,7 @@ FIRMA GRAFICA: [Incorporata nel PDF allegato]
 Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
             `;
 
-            // Scarica il PDF e apre email
+            // Scarica il PDF
             const elemento = document.getElementById('moduloContainer');
             const opt = {
                 margin: 10,
@@ -787,11 +803,11 @@ Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
 
             setTimeout(() => {
                 navigator.clipboard.writeText(testo).then(() => {
-                    alert('✅ PDF generato e copiato!\n\nOra incolla il testo nell\'email e allega il PDF scaricato.');
-                    const emailLink = `mailto:direzione@lockandfly.com?subject=Richiesta%20Fattura%20Lock%20%26%20Fly%20-%20${nome}`;
-                    window.location.href = emailLink;
+                    alert('✅ PDF generato e salvato!\n\nOra:\n1. Apri la tua app email\n2. Allega il file "Modulo_Fattura_Lock_Fly.pdf"\n3. Incolla il testo nell\'email\n4. Invia a direzione@lockandfly.com');
+                }).catch(() => {
+                    alert('⚠️ Errore nella copia. Copia manualmente il testo e invia per email.');
                 });
-            }, 1000);
+            }, 1500);
         }
 
         // SCARICA PDF PER FIRMA MANUALE
@@ -858,9 +874,9 @@ Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
             `;
 
             navigator.clipboard.writeText(testo).then(() => {
-                alert('✅ Testo copiato negli appunti!\n\nOra puoi incollarlo in una email.');
+                alert('✅ Testo copiato negli appunti!\n\n👉 Apri la tua app email e incolla il testo nel corpo del messaggio.\n\n📧 Destinatario: direzione@lockandfly.com');
             }).catch(() => {
-                alert('❌ Errore nella copia. Prova a copiare manualmente.');
+                alert('❌ Errore nella copia. Prova a copiare manualmente il testo.');
             });
         }
 
