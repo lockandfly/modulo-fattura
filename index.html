@@ -656,7 +656,7 @@
 
         <!-- FOOTER -->
         <div class="footer">
-            <p><strong>Lock & Fly</strong> | Parcheggi Malpensa | www.lockandfly.it | direzione@lockandfly.com</p>
+            <p><strong>Lock & Fly</strong> | Parcheggi Malpensa | lockandfly.it | direzione@lockandfly.com</p>
             <p style="margin-top: 8px; font-size: 11px;">Compilato il: <span id="dataCompilazione"></span></p>
         </div>
     </div>
@@ -751,7 +751,7 @@
         // Data compilazione
         document.getElementById('dataCompilazione').textContent = new Date().toLocaleDateString('it-IT');
 
-        // MOSTRA ISTRUZIONI SE TORNI DOPO IL DOWNLOAD
+        // MOSTRA ISTRUZIONI SE TORNI DOPO IL DOWNLOAD (Legacy - non più usato)
         window.addEventListener('load', function() {
             if (localStorage.getItem('showInstructions') === 'true') {
                 localStorage.removeItem('showInstructions');
@@ -759,7 +759,6 @@
                 document.querySelector('.header').style.display = 'none';
                 document.querySelector('.footer').style.display = 'none';
                 document.getElementById('istruzioniFinali').style.display = 'block';
-                // Scorri automaticamente alla sezione delle istruzioni
                 document.getElementById('istruzioniFinali').scrollIntoView({ behavior: 'smooth' });
             }
         });
@@ -798,30 +797,31 @@
             const elemento = document.getElementById('moduloContainer');
 
             html2canvas(elemento, {
-                scale: 2,
+                scale: 1.5,
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                compression: 'image/jpeg',
+                imageTimeout: 0
             }).then(canvas => {
-                // Converti canvas in blob e scarica
+                // Converti a JPEG con qualità ridotta per file più leggero
                 canvas.toBlob(function(blob) {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `Modulo_Fattura_Lock_Fly_${nome.replace(/\s+/g, '_')}.png`;
+                    link.download = `Modulo_Fattura_Lock_Fly_${nome.replace(/\s+/g, '_')}.jpg`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
 
-                    // Dopo il download, forza reload della pagina per stabilità su app WebView
-                    setTimeout(() => {
-                        // Scrivi le istruzioni nel localStorage per recuperarle dopo il reload
-                        localStorage.setItem('showInstructions', 'true');
-                        // Forza il reload della pagina (più stabile su app QR reader)
-                        location.reload();
-                    }, 1000);
-                });
+                    // Mostra le istruzioni subito dopo il download
+                    document.getElementById('moduloFattura').style.display = 'none';
+                    document.querySelector('.header').style.display = 'none';
+                    document.querySelector('.footer').style.display = 'none';
+                    document.getElementById('istruzioniFinali').style.display = 'block';
+                    document.getElementById('istruzioniFinali').scrollIntoView({ behavior: 'smooth' });
+                }, 'image/jpeg', 0.75);
             }).catch(err => {
                 console.error('Errore nella generazione dell\'immagine:', err);
                 alert('❌ Errore nel download. Riprova per favore.');
@@ -834,30 +834,31 @@
             const elemento = document.getElementById('moduloContainer');
 
             html2canvas(elemento, {
-                scale: 2,
+                scale: 1.5,
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                compression: 'image/jpeg',
+                imageTimeout: 0
             }).then(canvas => {
-                // Converti canvas in blob e scarica
+                // Converti a JPEG con qualità ridotta per file più leggero
                 canvas.toBlob(function(blob) {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `Modulo_Fattura_Lock_Fly_Da_Firmare_${nome.replace(/\s+/g, '_')}.png`;
+                    link.download = `Modulo_Fattura_Lock_Fly_Da_Firmare_${nome.replace(/\s+/g, '_')}.jpg`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
 
-                    // Dopo il download, forza reload della pagina per stabilità su app WebView
-                    setTimeout(() => {
-                        // Scrivi le istruzioni nel localStorage per recuperarle dopo il reload
-                        localStorage.setItem('showInstructions', 'true');
-                        // Forza il reload della pagina (più stabile su app QR reader)
-                        location.reload();
-                    }, 1000);
-                });
+                    // Mostra le istruzioni subito dopo il download
+                    document.getElementById('moduloFattura').style.display = 'none';
+                    document.querySelector('.header').style.display = 'none';
+                    document.querySelector('.footer').style.display = 'none';
+                    document.getElementById('istruzioniFinali').style.display = 'block';
+                    document.getElementById('istruzioniFinali').scrollIntoView({ behavior: 'smooth' });
+                }, 'image/jpeg', 0.75);
             }).catch(err => {
                 console.error('Errore nella generazione dell\'immagine:', err);
                 alert('❌ Errore nel download. Riprova per favore.');
