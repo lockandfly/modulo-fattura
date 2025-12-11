@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -803,8 +804,14 @@ Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
             setTimeout(() => {
                 navigator.clipboard.writeText(testo).then(() => {
                     alert('✅ PDF generato e salvato!\n\nOra:\n1. Apri la tua app email\n2. Allega il file "Modulo_Fattura_Lock_Fly.pdf"\n3. Incolla il testo nell\'email\n4. Invia a direzione@lockandfly.com');
+                    // Apri l'app email con il destinatario precompilato
+                    const emailLink = `mailto:direzione@lockandfly.com?subject=Richiesta%20Fattura%20Lock%20%26%20Fly%20-%20${encodeURIComponent(nome)}&body=${encodeURIComponent(testo)}`;
+                    window.location.href = emailLink;
                 }).catch(() => {
                     alert('⚠️ Errore nella copia. Copia manualmente il testo e invia per email.');
+                    // Apri comunque l'app email anche in caso di errore
+                    const emailLink = `mailto:direzione@lockandfly.com?subject=Richiesta%20Fattura%20Lock%20%26%20Fly%20-%20${encodeURIComponent(nome)}`;
+                    window.location.href = emailLink;
                 });
             }, 1500);
         }
