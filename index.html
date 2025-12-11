@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modulo Richiesta Fattura - Lock & Fly</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -520,7 +520,7 @@
 
             <!-- SEZIONE 3.5: RECENSIONE -->
             <div class="section">
-                <div class="section-title">⭐ CI PIACEREBBE CONOSCER TUA OPINIONE</div>
+                <div class="section-title">⭐ CI PIACEREBBE CONOSCERE TUA OPINIONE</div>
                 <div style="background: linear-gradient(135deg, #c2e59c 0%, #64b5f6 100%); padding: 20px; border-radius: 8px; text-align: center;">
                     <p style="color: #1e3a8a; font-size: 14px; font-weight: 500; margin-bottom: 16px;">
                         Siamo felici di averti servito! Se sei soddisfatto del nostro servizio, ti invitiamo a lasciare una <strong>recensione</strong>. 
@@ -561,6 +561,45 @@
                             <label for="firmaMan"><strong>Firma manuale</strong> (scarica e firma a mano)</label>
                         </div>
                     </div>
+                </div>
+
+                <div id="istruzioniFinali" style="display: none; text-align: center; margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 12px; border-left: 6px solid #28a745;">
+                    <h2 style="color: #155724; margin-bottom: 16px; font-size: 24px;">✅ MODULO SCARICATO CON SUCCESSO</h2>
+                    <p style="color: #155724; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                        Il file PNG del tuo modulo è stato salvato nella cartella che hai scelto.
+                    </p>
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #28a745;">
+                        <p style="color: #333; font-size: 13px; margin-bottom: 12px;">
+                            <strong>📁 Dove trovarti il file:</strong>
+                        </p>
+                        <p style="color: #666; font-size: 12px; margin: 8px 0;">
+                            <strong>Windows:</strong> Cartella "Download" oppure il percorso che hai scelto
+                        </p>
+                        <p style="color: #666; font-size: 12px; margin: 8px 0;">
+                            <strong>Mac/Linux:</strong> Cartella "Download" oppure il percorso che hai scelto
+                        </p>
+                        <p style="color: #666; font-size: 12px; margin: 8px 0;">
+                            <strong>Smartphone:</strong> Apri "File" → "Download" o "Recenti"
+                        </p>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #0891b2;">
+                        <p style="color: #333; font-size: 13px; margin-bottom: 12px;">
+                            <strong>📧 Prossimi step:</strong>
+                        </p>
+                        <ol style="text-align: left; color: #666; font-size: 12px; margin: 0; padding-left: 20px;">
+                            <li style="margin: 8px 0;">Apri la tua app email (Gmail, Outlook, Mail, ecc.)</li>
+                            <li style="margin: 8px 0;">Crea una <strong>nuova email</strong> verso: <strong style="color: #0891b2;">direzione@lockandfly.com</strong></li>
+                            <li style="margin: 8px 0;">Aggiungi un oggetto (es: "Richiesta Fattura Lock & Fly")</li>
+                            <li style="margin: 8px 0;"><strong>Allega il file PNG</strong> che hai appena scaricato</li>
+                            <li style="margin: 8px 0;">Invia l'email</li>
+                        </ol>
+                    </div>
+                    <button onclick="location.reload()" style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s;">
+                        ↻ Compila un nuovo modulo
+                    </button>
+                    <p style="color: #155724; font-size: 11px; margin-top: 20px; font-style: italic;">
+                        💡 Se hai domande, contatta: <strong>direzione@lockandfly.com</strong>
+                    </p>
                 </div>
 
                 <div class="signature-section" id="firmaDigitalSection">
@@ -621,7 +660,8 @@
             <p style="margin-top: 8px; font-size: 11px;">Compilato il: <span id="dataCompilazione"></span></p>
         </div>
     </div>
-       <script>
+
+    <script>
         // ===== GESTIONE FIRMA CON CANVAS =====
         const canvas = document.getElementById('signatureCanvas');
         const ctx = canvas.getContext('2d');
@@ -711,7 +751,7 @@
         // Data compilazione
         document.getElementById('dataCompilazione').textContent = new Date().toLocaleDateString('it-IT');
 
-        // SELEZIONE TIPO FIRMA (mostra/nasconde solo le sezioni, ma la logica di download resta uguale)
+        // SELEZIONE TIPO FIRMA
         document.querySelectorAll('input[name="tipoFirma"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const firmaDigitalSection = document.getElementById('firmaDigitalSection');
@@ -733,75 +773,85 @@
             });
         });
 
-        // ====== PDF CON FIRMA GRAFICA (SOLO DOWNLOAD) ======
+        // ===== SCARICA PNG CON FIRMA GRAFICA =====
         function inviaConFirmaDigitale(event) {
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
+            if (!validaFormDigitale()) return;
 
-            // Controlli solo se è selezionata la firma digitale
-            const tipoFirma = document.querySelector('input[name="tipoFirma"]:checked')?.value || 'digitale';
-            if (tipoFirma === 'digitale') {
-                if (!validaFormDigitale()) return;
-            }
-
+            const nome = document.getElementById('nome').value;
             const elemento = document.getElementById('moduloContainer');
-            const nome = document.getElementById('nome').value || 'Cliente';
 
-            const opt = {
-                margin: 10,
-                filename: `Modulo_Fattura_Lock_Fly_${nome.replace(/\s+/g, '_')}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-            };
+            html2canvas(elemento, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                // Converti canvas in blob e scarica
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `Modulo_Fattura_Lock_Fly_${nome.replace(/\s+/g, '_')}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
 
-            html2pdf().set(opt).from(elemento).save();
-
-            setTimeout(() => {
-                alert(
-`✅ PDF scaricato con successo.
-
-Ora:
-1️⃣ Apri la tua app email (Gmail, Outlook, Mail, ecc.)
-2️⃣ Crea una nuova email a: direzione@lockandfly.com
-3️⃣ Oggetto consigliato: "Richiesta Fattura Lock & Fly"
-4️⃣ Allegare il PDF scaricato (lo trovi nella cartella Download del dispositivo)
-5️⃣ Invia l'email.`
-                );
-            }, 1500);
+                    // Dopo il download, nascondi il modulo e mostra le istruzioni
+                    setTimeout(() => {
+                        document.getElementById('moduloFattura').style.display = 'none';
+                        document.querySelector('.header').style.display = 'none';
+                        document.querySelector('.footer').style.display = 'none';
+                        document.getElementById('istruzioniFinali').style.display = 'block';
+                    }, 500);
+                });
+            }).catch(err => {
+                console.error('Errore nella generazione dell\'immagine:', err);
+                alert('❌ Errore nel download. Riprova per favore.');
+            });
         }
 
-        // ====== PDF SENZA FIRMA (DA FIRMARE A MANO) ======
+        // ===== SCARICA PNG PER FIRMA MANUALE =====
         function scaricaPDFManuale() {
+            const nome = document.getElementById('nome').value;
             const elemento = document.getElementById('moduloContainer');
-            const nome = document.getElementById('nome').value || 'Cliente';
 
-            const opt = {
-                margin: 10,
-                filename: `Modulo_Fattura_Lock_Fly_Da_Firmare_${nome.replace(/\s+/g, '_')}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-            };
+            html2canvas(elemento, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                // Converti canvas in blob e scarica
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `Modulo_Fattura_Lock_Fly_Da_Firmare_${nome.replace(/\s+/g, '_')}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
 
-            html2pdf().set(opt).from(elemento).save();
-
-            setTimeout(() => {
-                alert(
-`✅ PDF scaricato senza firma.
-
-Istruzioni:
-1️⃣ Stampa il modulo
-2️⃣ Firmalo a mano
-3️⃣ Fotografa o scannerizza il modulo firmato
-4️⃣ Invia l'immagine o il PDF tramite email a: direzione@lockandfly.com`
-                );
-            }, 1500);
+                    // Dopo il download, nascondi il modulo e mostra le istruzioni
+                    setTimeout(() => {
+                        document.getElementById('moduloFattura').style.display = 'none';
+                        document.querySelector('.header').style.display = 'none';
+                        document.querySelector('.footer').style.display = 'none';
+                        document.getElementById('istruzioniFinali').style.display = 'block';
+                    }, 500);
+                });
+            }).catch(err => {
+                console.error('Errore nella generazione dell\'immagine:', err);
+                alert('❌ Errore nel download. Riprova per favore.');
+            });
         }
 
-        // ====== ESPORTA SOLO TESTO (OPZIONALE) ======
+        // ESPORTA EMAIL
         function esportaEmail() {
             const nome = document.getElementById('nome').value;
             const ragioneSociale = document.getElementById('ragioneSociale').value;
@@ -850,16 +900,9 @@ Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
             `;
 
             navigator.clipboard.writeText(testo).then(() => {
-                alert(
-`✅ Testo copiato negli appunti.
-
-Ora:
-1️⃣ Apri la tua app email
-2️⃣ Crea una nuova email a: direzione@lockandfly.com
-3️⃣ Incolla il testo nel corpo dell'email`
-                );
+                alert('✅ Testo copiato negli appunti!\n\n👉 Apri la tua app email e incolla il testo nel corpo del messaggio.\n\n📧 Destinatario: direzione@lockandfly.com');
             }).catch(() => {
-                alert('❌ Errore nella copia del testo. Prova a copiare manualmente.');
+                alert('❌ Errore nella copia. Prova a copiare manualmente il testo.');
             });
         }
 
