@@ -751,6 +751,19 @@
         // Data compilazione
         document.getElementById('dataCompilazione').textContent = new Date().toLocaleDateString('it-IT');
 
+        // MOSTRA ISTRUZIONI SE TORNI DOPO IL DOWNLOAD
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('showInstructions') === 'true') {
+                localStorage.removeItem('showInstructions');
+                document.getElementById('moduloFattura').style.display = 'none';
+                document.querySelector('.header').style.display = 'none';
+                document.querySelector('.footer').style.display = 'none';
+                document.getElementById('istruzioniFinali').style.display = 'block';
+                // Scorri automaticamente alla sezione delle istruzioni
+                document.getElementById('istruzioniFinali').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
         // SELEZIONE TIPO FIRMA
         document.querySelectorAll('input[name="tipoFirma"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -801,13 +814,13 @@
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
 
-                    // Dopo il download, nascondi il modulo e mostra le istruzioni
+                    // Dopo il download, forza reload della pagina per stabilità su app WebView
                     setTimeout(() => {
-                        document.getElementById('moduloFattura').style.display = 'none';
-                        document.querySelector('.header').style.display = 'none';
-                        document.querySelector('.footer').style.display = 'none';
-                        document.getElementById('istruzioniFinali').style.display = 'block';
-                    }, 500);
+                        // Scrivi le istruzioni nel localStorage per recuperarle dopo il reload
+                        localStorage.setItem('showInstructions', 'true');
+                        // Forza il reload della pagina (più stabile su app QR reader)
+                        location.reload();
+                    }, 1000);
                 });
             }).catch(err => {
                 console.error('Errore nella generazione dell\'immagine:', err);
@@ -837,13 +850,13 @@
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
 
-                    // Dopo il download, nascondi il modulo e mostra le istruzioni
+                    // Dopo il download, forza reload della pagina per stabilità su app WebView
                     setTimeout(() => {
-                        document.getElementById('moduloFattura').style.display = 'none';
-                        document.querySelector('.header').style.display = 'none';
-                        document.querySelector('.footer').style.display = 'none';
-                        document.getElementById('istruzioniFinali').style.display = 'block';
-                    }, 500);
+                        // Scrivi le istruzioni nel localStorage per recuperarle dopo il reload
+                        localStorage.setItem('showInstructions', 'true');
+                        // Forza il reload della pagina (più stabile su app QR reader)
+                        location.reload();
+                    }, 1000);
                 });
             }).catch(err => {
                 console.error('Errore nella generazione dell\'immagine:', err);
