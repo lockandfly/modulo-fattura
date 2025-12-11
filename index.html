@@ -46,8 +46,8 @@
         }
 
         .logo {
-            max-width: 150px; /* Leggermente più largo per adattarsi a vari loghi */
-            max-height: 100px; /* Aumentato leggermente per il logo quadrato/verticale */
+            max-width: 150px;
+            max-height: 100px;
             display: block;
             margin: 0 auto;
             object-fit: contain;
@@ -434,9 +434,8 @@
         <!-- HEADER -->
         <div class="header">
             <div class="logo-container">
-                <!-- LOGO AGGIORNATO AL FILE LOCALE -->
-                <!-- IMPORTANTE: Il file "logo lock and fly malpensa.jpg" deve essere nella stessa cartella di questo file HTML -->
-                <img src="logo lock and fly malpensa.jpg" alt="Lock & Fly Logo" class="logo" crossOrigin="anonymous">
+                <!-- IMPORTANTE: Assicurati che il file logo sia presente -->
+                <img src="logo lock and fly malpensa.jpg" alt="Lock & Fly Logo" class="logo" crossOrigin="anonymous" onerror="this.style.display='none'">
             </div>
             <h1>MODULO RICHIESTA FATTURA</h1>
             <p>Lock & Fly - Parcheggi Malpensa</p>
@@ -676,21 +675,27 @@
 
             <!-- PULSANTI (Ignorati nello screenshot) -->
             <div class="button-group" data-html2canvas-ignore="true">
+                <!-- Bottone Firma Digitale -->
                 <button type="button" class="btn-success" id="btnInviaPDF" onclick="inviaConFirmaDigitale(event); return false;">
                     📧 SALVA E MOSTRA ISTRUZIONI
                 </button>
+                
+                <!-- Bottone Firma Manuale (Nascosto se è attiva la firma digitale, ma manteniamo la logica vecchia per compatibilità) -->
                 <button type="button" class="btn-primary" id="btnScaricaPDF" onclick="scaricaPDFManuale()" style="display: none;">
                     📥 SCARICA PDF PER FIRMARE
                 </button>
-                <button type="button" class="btn-info" onclick="esportaEmail()">
-                    📧 ESPORTA TESTO PER EMAIL
+                
+                <!-- NUOVO BOTTONE RICHIESTO: SOSTITUISCE "ESPORTA EMAIL" -->
+                <button type="button" class="btn-info" onclick="scaricaPerFirmaManuale()">
+                    📝 SCARICA E FIRMA IL MODULO E SEGUI ISTRUZIONI
                 </button>
+                
                 <button type="reset" class="btn-secondary" onclick="clearSignature()">
                     🗑️ PULISCI
                 </button>
             </div>
 
-            <!-- Istruzioni finali (SPOSTATE SOTTO I PULSANTI) -->
+            <!-- Istruzioni finali -->
             <div id="istruzioniFinali" data-html2canvas-ignore="true">
                 <h2>✅ MODULO COMPILATO</h2>
                 <div style="margin-bottom: 10px; font-weight: 500; font-size: 14px;">Ecco come inviare il modulo:</div>
@@ -844,7 +849,7 @@
             });
         });
 
-        // ===== SCARICA PNG CON FIRMA GRAFICA =====
+        // ===== SCARICA PNG CON FIRMA GRAFICA (Bottone Verde) =====
         function inviaConFirmaDigitale(event) {
             if (event) {
                 event.preventDefault();
@@ -864,7 +869,6 @@
                 useCORS: true,
                 logging: false,
                 backgroundColor: '#ffffff',
-                // Ignora gli elementi con data-html2canvas-ignore (pulsanti, istruzioni, etc)
             }).then(canvas => {
                 canvas.toBlob(function(blob) {
                     const url = URL.createObjectURL(blob);
@@ -876,39 +880,93 @@
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
 
-                    // MOSTRA ISTRUZIONI DI SUCCESSO
                     mostraIstruzioniFinali();
                     document.getElementById('btnInviaPDF').innerHTML = originalBtnText;
 
-                }, 'image/jpeg', 0.85); // Qualità JPEG
+                }, 'image/jpeg', 0.85);
             }).catch(err => {
                 console.error('Errore nella generazione dell\'immagine:', err);
-                alert('❌ Errore nel download. Il logo locale potrebbe aver bloccato la generazione per sicurezza browser.\n\nSuggerimento: Carica il logo online o convertilo in base64.');
+                alert('❌ Errore nel download.');
                 document.getElementById('btnInviaPDF').innerHTML = originalBtnText;
             });
         }
 
-        // Funzione per mostrare le istruzioni dopo il download
-        function mostraIstruzioniFinali() {
-            // Nasconde le opzioni di firma e i pulsanti per pulizia visiva (Opzionale, ma rende più chiaro)
-            // Se preferisci che rimangano visibili, rimuovi queste due righe:
-            // document.querySelector('.signature-options').style.display = 'none';
-            // document.querySelector('.button-group').style.display = 'none';
+        // ===== NUOVA FUNZIONE PER SCARICARE MODULO DA FIRMARE A MANO (Bottone Azzurro) =====
+        function scaricaPerFirmaManuale() {
+            // 1. Validazione base (solo dati anagrafici, NO firma canvas)
+            if (!validaSoloDati()) return;
+
+            const nome = document.getElementById('nome').value || 'Cliente';
+            const elemento = document.getElementById('moduloContainer');
             
-            // Mostra il box istruzioni
+            // 2. Automazione UI: Assicura che la vista sia impostata su "Firma Manuale" 
+            // per far apparire la riga tratteggiata invece del canvas vuoto.
+            const radioManuale = document.getElementById('firmaMan');
+            const radioDigitale = document.getElementById('firmaDig');
+            const eraDigitale = radioDigitale.checked;
+
+            // Forza il passaggio alla vista manuale
+            if (eraDigitale) {
+                radioManuale.click(); 
+            }
+
+            // Feedback visivo
+            const btn = document.querySelector('.btn-info');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Generazione PDF/JPG...';
+
+            // Timeout breve per assicurare che il browser abbia renderizzato il cambio di vista
+            setTimeout(() => {
+                html2canvas(elemento, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                }).then(canvas => {
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `Modulo_Da_Firmare_${nome.replace(/\s+/g, '_')}.jpg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                        
+                        // Ripristina testo pulsante
+                        btn.innerHTML = originalText;
+
+                        // 3. Mostra le istruzioni finali
+                        mostraIstruzioniFinali();
+                        
+                        // Opzionale: Se vuoi che torni alla vista digitale dopo il download, decommenta la riga sotto.
+                        // Altrimenti lo lasciamo così perché l'utente ha appena scelto di firmare manualmente.
+                        // if (eraDigitale) radioDigitale.click();
+
+                        alert('✅ Modulo scaricato!\nOra stampalo, firmalo a mano e invialo via email come indicato.');
+
+                    }, 'image/jpeg', 0.85);
+                }).catch(err => {
+                    console.error(err);
+                    alert('Errore generazione immagine');
+                    btn.innerHTML = originalText;
+                });
+            }, 100);
+        }
+
+        // Funzione per mostrare le istruzioni
+        function mostraIstruzioniFinali() {
             const istruzioni = document.getElementById('istruzioniFinali');
             istruzioni.style.display = 'block';
-            
-            // Scroll verso le istruzioni
             setTimeout(() => {
                  istruzioni.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 100);
-           
-            alert('✅ Modulo scaricato con successo!\n\nLeggi le istruzioni qui sotto per sapere come inviarlo.');
         }
 
-        // ===== SCARICA PNG PER FIRMA MANUALE =====
+        // ===== SCARICA PNG PER FIRMA MANUALE (Bottone Blu Scuro legacy) =====
         function scaricaPDFManuale() {
+            // Questa funzione rimane per il bottone che appare solo se si seleziona "Firma Manuale" esplicitamente
+            // Ma ora la logica è replicata nel bottone Azzurro.
+            if (!validaSoloDati()) return;
             const nome = document.getElementById('nome').value || 'Cliente';
             const elemento = document.getElementById('moduloContainer');
 
@@ -921,47 +979,34 @@
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `Modulo_Fattura_Da_Firmare_${nome.replace(/\s+/g, '_')}.jpg`;
+                    link.download = `Modulo_Da_Firmare_${nome.replace(/\s+/g, '_')}.jpg`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
                     
-                    // Anche qui mostriamo le istruzioni
-                    const istruzioni = document.getElementById('istruzioniFinali');
-                    istruzioni.style.display = 'block';
-                    setTimeout(() => {
-                         istruzioni.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 100);
-                    
-                    alert('✅ Modulo scaricato!\nStampalo o modificalo, firmalo e invialo seguendo le istruzioni in basso.');
+                    mostraIstruzioniFinali();
                 }, 'image/jpeg', 0.85);
             });
         }
 
-        // ESPORTA EMAIL
-        function esportaEmail() {
-            const nome = document.getElementById('nome').value;
-            // ... (logica esistente) ...
-            // Per brevità mantengo la logica base, ma consiglio di usare template string
-            const note = document.getElementById('note').value;
+        // VALIDAZIONE COMPLETA (include Canvas)
+        function validaFormDigitale() {
+            if (!validaSoloDati()) return false;
+
+            const pixelBuffer = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            const hasDrawing = pixelBuffer.some(channel => channel !== 0);
             
-            // Semplice controllo
-            if(!nome) { alert("Compila almeno il nome per esportare."); return; }
-
-            const testo = `RICHIESTA FATTURA\nCliente: ${nome}\nNote: ${note}`;
-            // ... (implementazione completa se necessaria, ma quella originale andava bene)
-
-            navigator.clipboard.writeText(testo).then(() => {
-                alert('✅ Testo copiato negli appunti!');
-            }).catch(() => {
-                alert('❌ Impossibile copiare automaticamente.');
-            });
+            if (!hasDrawing) {
+                alert('⚠️ Apponi la tua Firma nel riquadro apposito');
+                return false;
+            }
+            return true;
         }
 
-        // VALIDAZIONE
-        function validaFormDigitale() {
-            const requiredIds = ['nome', 'codiceFiscale', 'indirizzo', 'email', 'telefono', 'dataIngresso', 'dataUscita', 'targa', 'importo', 'dataFirma'];
+        // VALIDAZIONE SOLO DATI (Esclude Canvas)
+        function validaSoloDati() {
+            const requiredIds = ['nome', 'codiceFiscale', 'indirizzo', 'email', 'telefono', 'dataIngresso', 'dataUscita', 'targa', 'importo'];
             
             for (let id of requiredIds) {
                 if (!document.getElementById(id).value) {
@@ -979,19 +1024,6 @@
                 alert('⚠️ Seleziona un Metodo di Pagamento');
                 return false;
             }
-
-            // Validazione Canvas (check se è vuoto)
-            // Nota: con il fix HDPI, i pixel sono moltiplicati, ma la logica pixel check rimane valida
-            // Un check più leggero è verificare se isDrawing è mai stato true, ma meglio pixel check
-            const pixelBuffer = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            // Verifica veloce su un campione di pixel per performance, oppure completa
-            const hasDrawing = pixelBuffer.some(channel => channel !== 0); // Verifica alpha o colore
-            
-            if (!hasDrawing) {
-                alert('⚠️ Apponi la tua Firma nel riquadro apposito');
-                return false;
-            }
-
             return true;
         }
     </script>
