@@ -621,8 +621,7 @@
             <p style="margin-top: 8px; font-size: 11px;">Compilato il: <span id="dataCompilazione"></span></p>
         </div>
     </div>
-
-    <script>
+       <script>
         // ===== GESTIONE FIRMA CON CANVAS =====
         const canvas = document.getElementById('signatureCanvas');
         const ctx = canvas.getContext('2d');
@@ -712,7 +711,7 @@
         // Data compilazione
         document.getElementById('dataCompilazione').textContent = new Date().toLocaleDateString('it-IT');
 
-        // SELEZIONE TIPO FIRMA
+        // SELEZIONE TIPO FIRMA (mostra/nasconde solo le sezioni, ma la logica di download resta uguale)
         document.querySelectorAll('input[name="tipoFirma"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const firmaDigitalSection = document.getElementById('firmaDigitalSection');
@@ -734,70 +733,25 @@
             });
         });
 
-        // INVIA CON FIRMA DIGITALE
+        // ====== PDF CON FIRMA GRAFICA (SOLO DOWNLOAD) ======
         function inviaConFirmaDigitale(event) {
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
-            if (!validaFormDigitale()) return;
 
-            const nome = document.getElementById('nome').value;
-            const ragioneSociale = document.getElementById('ragioneSociale').value;
-            const codiceFiscale = document.getElementById('codiceFiscale').value;
-            const indirizzo = document.getElementById('indirizzo').value;
-            const cap = document.getElementById('cap').value;
-            const email = document.getElementById('email').value;
-            const telefono = document.getElementById('telefono').value;
-            const dataIngresso = document.getElementById('dataIngresso').value;
-            const dataUscita = document.getElementById('dataUscita').value;
-            const targa = document.getElementById('targa').value;
-            const importo = document.getElementById('importo').value;
-            const pagamento = document.querySelector('input[name="pagamento"]:checked')?.value || '';
-            const note = document.getElementById('note').value;
-            const dataFirma = document.getElementById('dataFirma').value;
+            // Controlli solo se è selezionata la firma digitale
+            const tipoFirma = document.querySelector('input[name="tipoFirma"]:checked')?.value || 'digitale';
+            if (tipoFirma === 'digitale') {
+                if (!validaFormDigitale()) return;
+            }
 
-            const servizi = Array.from(document.querySelectorAll('input[name="servizio"]:checked'))
-                .map(cb => cb.value)
-                .join(', ');
-
-            const testo = `
-RICHIESTA FATTURA - LOCK & FLY
-===============================================
-
-DATI CLIENTE:
-- Nome e Cognome: ${nome}
-- Ragione Sociale: ${ragioneSociale || 'N/A'}
-- Codice Fiscale / Partita IVA: ${codiceFiscale}
-- Indirizzo: ${indirizzo}
-- CAP / Città / Provincia: ${cap}
-- Email: ${email}
-- Telefono: ${telefono}
-
-DETTAGLI SERVIZIO:
-- Data Ingresso: ${dataIngresso}
-- Data Uscita: ${dataUscita}
-- Targa Veicolo: ${targa}
-- Tipologia Servizio: ${servizi || 'Non specificata'}
-- Importo Pagato: € ${importo}
-- Metodo Pagamento: ${pagamento}
-
-NOTE:
-${note || 'Nessuna nota'}
-
-DATA FIRMA: ${dataFirma}
-
-FIRMA GRAFICA: [Allegare il PDF scaricato con la firma]
-
-===============================================
-Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
-            `;
-
-            // Scarica il PDF
             const elemento = document.getElementById('moduloContainer');
+            const nome = document.getElementById('nome').value || 'Cliente';
+
             const opt = {
                 margin: 10,
-                filename: 'Modulo_Fattura_Lock_Fly.pdf',
+                filename: `Modulo_Fattura_Lock_Fly_${nome.replace(/\s+/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
                 jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
@@ -806,52 +760,48 @@ Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
             html2pdf().set(opt).from(elemento).save();
 
             setTimeout(() => {
-                navigator.clipboard.writeText(testo).then(() => {
-                    const istruzioni = `✅ PERFETTO! Ecco cosa è successo:
+                alert(
+`✅ PDF scaricato con successo.
 
-1️⃣ PDF SCARICATO
-   📱 Cartella "Download" del tuo dispositivo
-   📄 Nome file: Modulo_Fattura_Lock_Fly.pdf
-
-2️⃣ TESTO COPIATO
-   ✏️ Modulo copiato negli appunti
-
-3️⃣ PROSSIMI STEP:
-   A) Apri l'app EMAIL (Gmail, Outlook, ecc.)
-   B) Nuovo messaggio a: direzione@lockandfly.com
-   C) Incolla il testo nel corpo email (Ctrl+V)
-   D) Clicca "Allega file" → Cartella Download
-   E) Seleziona il PDF e invia!
-
-📍 DOVE TROVARE IL FILE:
-   🖥️ Windows: C:\\Users\\[TuoNome]\\Downloads\\
-   🍎 Mac: ~/Downloads/
-   🤖 Android: Apri "File" → Cartella Download
-   📱 iPhone: Apri "File" → "Recenti" o "iCloud Drive"`;
-                    
-                    alert(istruzioni);
-                }).catch(() => {
-                    alert('⚠️ Errore nella copia del testo.\n\n✅ Ma il PDF è stato scaricato correttamente!\n\n👉 Apri l\'app email, allega il PDF da Downloads e invia a direzione@lockandfly.com');
-                });
+Ora:
+1️⃣ Apri la tua app email (Gmail, Outlook, Mail, ecc.)
+2️⃣ Crea una nuova email a: direzione@lockandfly.com
+3️⃣ Oggetto consigliato: "Richiesta Fattura Lock & Fly"
+4️⃣ Allegare il PDF scaricato (lo trovi nella cartella Download del dispositivo)
+5️⃣ Invia l'email.`
+                );
             }, 1500);
         }
 
-        // SCARICA PDF PER FIRMA MANUALE
+        // ====== PDF SENZA FIRMA (DA FIRMARE A MANO) ======
         function scaricaPDFManuale() {
             const elemento = document.getElementById('moduloContainer');
+            const nome = document.getElementById('nome').value || 'Cliente';
+
             const opt = {
                 margin: 10,
-                filename: 'Modulo_Fattura_Lock_Fly_DaFirmare.pdf',
+                filename: `Modulo_Fattura_Lock_Fly_Da_Firmare_${nome.replace(/\s+/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
                 jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
             };
 
             html2pdf().set(opt).from(elemento).save();
-            alert('✅ PDF scaricato!\n\nStampa, firma a mano e invia per email a direzione@lockandfly.com');
+
+            setTimeout(() => {
+                alert(
+`✅ PDF scaricato senza firma.
+
+Istruzioni:
+1️⃣ Stampa il modulo
+2️⃣ Firmalo a mano
+3️⃣ Fotografa o scannerizza il modulo firmato
+4️⃣ Invia l'immagine o il PDF tramite email a: direzione@lockandfly.com`
+                );
+            }, 1500);
         }
 
-        // ESPORTA EMAIL
+        // ====== ESPORTA SOLO TESTO (OPZIONALE) ======
         function esportaEmail() {
             const nome = document.getElementById('nome').value;
             const ragioneSociale = document.getElementById('ragioneSociale').value;
@@ -900,9 +850,16 @@ Modulo compilato automaticamente il ${new Date().toLocaleDateString('it-IT')}
             `;
 
             navigator.clipboard.writeText(testo).then(() => {
-                alert('✅ Testo copiato negli appunti!\n\n👉 Apri la tua app email e incolla il testo nel corpo del messaggio.\n\n📧 Destinatario: direzione@lockandfly.com');
+                alert(
+`✅ Testo copiato negli appunti.
+
+Ora:
+1️⃣ Apri la tua app email
+2️⃣ Crea una nuova email a: direzione@lockandfly.com
+3️⃣ Incolla il testo nel corpo dell'email`
+                );
             }).catch(() => {
-                alert('❌ Errore nella copia. Prova a copiare manualmente il testo.');
+                alert('❌ Errore nella copia del testo. Prova a copiare manualmente.');
             });
         }
 
