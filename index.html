@@ -462,6 +462,15 @@
                         <label for="codiceFiscale">Codice Fiscale / Partita IVA *</label>
                         <input type="text" id="codiceFiscale" name="codiceFiscale" required>
                     </div>
+                    <!-- NUOVO CAMPO SDI -->
+                    <div class="field">
+                        <label for="codiceSDI">Codice SDI (Codice Destinatario) *</label>
+                        <input type="text" id="codiceSDI" name="codiceSDI" required placeholder="0000000">
+                    </div>
+                </div>
+
+                <!-- INDIRIZZO SPOSTATO SU RIGA INTERA -->
+                <div class="form-group full">
                     <div class="field">
                         <label for="indirizzo">Indirizzo completo *</label>
                         <input type="text" id="indirizzo" name="indirizzo" required>
@@ -1006,7 +1015,8 @@
 
         // VALIDAZIONE SOLO DATI (Esclude Canvas)
         function validaSoloDati() {
-            const requiredIds = ['nome', 'codiceFiscale', 'indirizzo', 'email', 'telefono', 'dataIngresso', 'dataUscita', 'targa', 'importo'];
+            // Aggiunto codiceSDI alla lista dei campi obbligatori
+            const requiredIds = ['nome', 'codiceFiscale', 'codiceSDI', 'indirizzo', 'email', 'telefono', 'dataIngresso', 'dataUscita', 'targa', 'importo'];
             
             for (let id of requiredIds) {
                 if (!document.getElementById(id).value) {
