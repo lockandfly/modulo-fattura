@@ -60,7 +60,6 @@
         .istruzioni-box ul { padding-left: 20px; margin: 5px 0; font-size: 12px; }
         .istruzioni-box li { margin-bottom: 4px; }
         .highlight-contact { color: #0891b2; font-weight: bold; font-size: 13px; }
-        /* PARTNER BLOCK */
         .partner-block { background: #f0f4ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px; margin-top: 6px; }
         .partner-codice { margin-top: 8px; border-left: 3px solid #0284c7; display: none; }
         .partner-error { color: #dc2626; font-size: 11px; margin-top: 4px; display: none; }
@@ -126,7 +125,6 @@
                     </div>
                 </div>
 
-                <!-- CAP / CITTA' / PROVINCIA: tre campi separati obbligatori -->
                 <div class="form-group triple">
                     <div class="field">
                         <label for="cap">CAP *</label>
@@ -176,7 +174,7 @@
                     </div>
                 </div>
 
-                <!-- SEZIONE PRENOTAZIONE PARTNER - MODIFICATA -->
+                <!-- SEZIONE PRENOTAZIONE PARTNER -->
                 <div class="form-group full">
                     <div class="field">
                         <label>Prenotazione Partner <span style="color:#dc2626;">*</span> <span style="font-weight:400; color:#666;">(seleziona almeno una opzione)</span></label>
@@ -188,8 +186,8 @@
                                 <label for="checkParkos" style="color: #0369a1; font-weight: 700;">Solo prenotazioni clienti Parkos</label>
                             </div>
                             <input type="text" id="codiceParkos" name="codiceParkos"
-                                   placeholder="Codice Prenotazione Parkos"
-                                   class="field partner-codice" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px; background:#fafafa; height:38px; border-left: 3px solid #0284c7;">
+                                   placeholder="Es: AB1234 (6-9 caratteri alfanumerici)"
+                                   style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px; background:#fafafa; height:38px; border-left: 3px solid #0284c7; display:none;">
 
                             <!-- OPZIONE 2: SITO LOCKANDFLY -->
                             <div class="checkbox-item" style="background: #ecfdf5; border: 1px solid #6ee7b7; margin-top: 8px; margin-bottom: 6px;">
@@ -197,8 +195,8 @@
                                 <label for="checkLockandfly" style="color: #065f46; font-weight: 700;">Solo prenotazioni clienti sito LockandFly</label>
                             </div>
                             <input type="text" id="codiceLockandfly" name="codiceLockandfly"
-                                   placeholder="Codice Prenotazione LockandFly"
-                                   class="field partner-codice" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px; background:#fafafa; height:38px; border-left: 3px solid #059669; display:none;">
+                                   placeholder="Es: PARK-AB12CD34"
+                                   style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px; background:#fafafa; height:38px; border-left: 3px solid #059669; display:none;">
 
                             <!-- OPZIONE 3: SOLO PAGAMENTO IN PARCHEGGIO -->
                             <div class="checkbox-item" style="background: #fef3c7; border: 1px solid #fde68a; margin-top: 8px; margin-bottom: 6px;">
@@ -207,9 +205,9 @@
                             </div>
                             <input type="text" id="codiceParcheggio" name="codiceParcheggio"
                                    placeholder="Codice Prenotazione / Ricevuta pagamento"
-                                   class="field partner-codice" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px; background:#fafafa; height:38px; border-left: 3px solid #d97706; display:none;">
+                                   style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px; background:#fafafa; height:38px; border-left: 3px solid #d97706; display:none;">
 
-                            <div id="partnerError" class="partner-error">⚠️ Seleziona almeno una opzione e inserisci il relativo codice prenotazione.</div>
+                            <div id="partnerError" style="color:#dc2626; font-size:11px; margin-top:4px; display:none;"></div>
                         </div>
                     </div>
                 </div>
@@ -476,6 +474,36 @@
             });
         });
 
+        // ===== VALIDAZIONE IN TEMPO REALE CODICI PARTNER =====
+        document.getElementById('codiceParkos').addEventListener('input', function() {
+            const val = this.value.trim();
+            const pattern = /^[A-Za-z0-9#]{6,9}$/;
+            const errDiv = document.getElementById('partnerError');
+            if (val && !pattern.test(val)) {
+                this.style.borderColor = '#dc2626';
+                errDiv.textContent = '⚠️ Codice Parkos: 6-9 caratteri (lettere, numeri e #). Es: AB1234 oppure AB#1234';
+                errDiv.style.display = 'block';
+            } else {
+                this.style.borderColor = val ? '#059669' : '#ccc';
+                errDiv.style.display = 'none';
+            }
+        });
+
+        document.getElementById('codiceLockandfly').addEventListener('input', function() {
+            const val = this.value.trim();
+            const pattern = /^PARK-[A-Za-z0-9]{8}$/;
+            const errDiv = document.getElementById('partnerError');
+            if (val && !pattern.test(val)) {
+                this.style.borderColor = '#dc2626';
+                errDiv.textContent = '⚠️ Codice LockandFly: deve iniziare con PARK- seguito da 8 caratteri alfanumerici. Es: PARK-AB12CD34';
+                errDiv.style.display = 'block';
+            } else {
+                this.style.borderColor = val ? '#059669' : '#ccc';
+                errDiv.style.display = 'none';
+            }
+        });
+
+        // ===== SCARICA PNG CON FIRMA GRAFICA =====
         function inviaConFirmaDigitale(event) {
             if (event) { event.preventDefault(); event.stopPropagation(); }
             if (!validaFormDigitale()) return;
@@ -578,19 +606,10 @@
         function validaSoloDati() {
             const requiredIds = ['nome', 'codiceFiscale', 'codiceSDI', 'indirizzo', 'cap', 'citta', 'provincia', 'email', 'telefono', 'dataIngresso', 'dataUscita', 'targa', 'importo'];
             const labels = {
-                nome: 'Nome e Cognome',
-                codiceFiscale: 'Codice Fiscale / Partita IVA',
-                codiceSDI: 'Codice SDI',
-                indirizzo: 'Indirizzo completo',
-                cap: 'CAP',
-                citta: 'Città',
-                provincia: 'Provincia',
-                email: 'E-mail',
-                telefono: 'Telefono',
-                dataIngresso: 'Data di ingresso',
-                dataUscita: 'Data di uscita',
-                targa: 'Targa veicolo',
-                importo: 'Importo pagato'
+                nome: 'Nome e Cognome', codiceFiscale: 'Codice Fiscale / Partita IVA', codiceSDI: 'Codice SDI',
+                indirizzo: 'Indirizzo completo', cap: 'CAP', citta: 'Città', provincia: 'Provincia',
+                email: 'E-mail', telefono: 'Telefono', dataIngresso: 'Data di ingresso',
+                dataUscita: 'Data di uscita', targa: 'Targa veicolo', importo: 'Importo pagato'
             };
             for (let id of requiredIds) {
                 if (!document.getElementById(id).value.trim()) {
@@ -600,7 +619,6 @@
                 }
             }
 
-            // VALIDAZIONE PARTNER: almeno una checkbox selezionata con codice
             const checkParkos = document.getElementById('checkParkos');
             const checkLockandfly = document.getElementById('checkLockandfly');
             const checkParcheggio = document.getElementById('checkParcheggio');
@@ -612,17 +630,37 @@
                 errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return false;
             }
-            if (checkParkos.checked && !document.getElementById('codiceParkos').value.trim()) {
-                errDiv.textContent = '⚠️ Inserisci il Codice Prenotazione Parkos.';
-                errDiv.style.display = 'block';
-                document.getElementById('codiceParkos').focus();
-                return false;
+            if (checkParkos.checked) {
+                const codPK = document.getElementById('codiceParkos').value.trim();
+                const parkosPattern = /^[A-Za-z0-9#]{6,9}$/;
+                if (!codPK) {
+                    errDiv.textContent = '⚠️ Inserisci il Codice Prenotazione Parkos.';
+                    errDiv.style.display = 'block';
+                    document.getElementById('codiceParkos').focus();
+                    return false;
+                }
+                if (!parkosPattern.test(codPK)) {
+                    errDiv.textContent = '⚠️ Il codice Parkos deve essere composto da 6 a 9 caratteri (lettere, numeri e #, senza spazi). Es: AB1234 oppure AB#12345';
+                    errDiv.style.display = 'block';
+                    document.getElementById('codiceParkos').focus();
+                    return false;
+                }
             }
-            if (checkLockandfly.checked && !document.getElementById('codiceLockandfly').value.trim()) {
-                errDiv.textContent = '⚠️ Inserisci il Codice Prenotazione LockandFly.';
-                errDiv.style.display = 'block';
-                document.getElementById('codiceLockandfly').focus();
-                return false;
+            if (checkLockandfly.checked) {
+                const codLAF = document.getElementById('codiceLockandfly').value.trim();
+                const lafPattern = /^PARK-[A-Za-z0-9]{8}$/;
+                if (!codLAF) {
+                    errDiv.textContent = '⚠️ Inserisci il Codice Prenotazione LockandFly.';
+                    errDiv.style.display = 'block';
+                    document.getElementById('codiceLockandfly').focus();
+                    return false;
+                }
+                if (!lafPattern.test(codLAF)) {
+                    errDiv.textContent = '⚠️ Il codice LockandFly deve essere nel formato PARK-XXXXXXXX (PARK- seguito da 8 caratteri alfanumerici). Es: PARK-AB12CD34';
+                    errDiv.style.display = 'block';
+                    document.getElementById('codiceLockandfly').focus();
+                    return false;
+                }
             }
             if (checkParcheggio.checked && !document.getElementById('codiceParcheggio').value.trim()) {
                 errDiv.textContent = '⚠️ Inserisci il Codice Prenotazione / Ricevuta per il pagamento in parcheggio.';
